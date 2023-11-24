@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"flag"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 )
@@ -135,7 +137,17 @@ func (h ItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Entry point
 func main() {
-	http.Handle("/items", ItemsHandler{})
-	http.Handle("/item/", ItemHandler{})
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	address := flag.String("address", "127.0.0.1", "Server address")
+	port := flag.String("port", "8080", "Server port")
+
+	slog.Debug("Register Handlers")
+	mux := http.NewServeMux()
+	mux.Handle("/items", ItemsHandler{})
+	mux.Handle("/item/", ItemHandler{})
+
+	serverAddress := fmt.Sprintf("%s:%s", *address, *port)
+	slog.Info("Starting the server", "address", serverAddress)
+
+	err := http.ListenAndServe(serverAddress, mux)
+	slog.Error(err.Error())
 }
