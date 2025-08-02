@@ -1,0 +1,392 @@
+openapi: 3.0.3
+info:
+  title: Key-Value Store API
+  description: A simple, concurrent-safe key-value store with RESTful API
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://github.com/mtha790/kvstore
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /api/kv:
+    get:
+      summary: List all keys
+      description: Retrieve a list of all keys stored in the key-value store
+      operationId: listKeys
+      tags:
+        - Key-Value Operations
+      responses:
+        '200':
+          description: Successful response with list of keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+              example:
+                keys:
+                  - "user:123"
+                  - "config:app"
+                  - "cache:session:abc"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/kv/{key}:
+    get:
+      summary: Get value by key
+      description: Retrieve the value associated with a specific key
+      operationId: getKey
+      tags:
+        - Key-Value Operations
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: The key to retrieve
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          example: "user:123"
+      responses:
+        '200':
+          description: Key found and value returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResponse'
+              example:
+                key: "user:123"
+                value:
+                  data: "John Doe"
+                  created_at: "2024-01-15T10:30:00Z"
+                  updated_at: "2024-01-15T14:45:00Z"
+                  version: 2
+        '400':
+          description: Invalid key format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Create or update a key-value pair
+      description: Store a value with the specified key. Creates a new entry or updates existing one.
+      operationId: setKey
+      tags:
+        - Key-Value Operations
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: The key to set
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          example: "user:123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRequest'
+            example:
+              value: "John Doe"
+      responses:
+        '200':
+          description: Key updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetResponse'
+              example:
+                key: "user:123"
+                value:
+                  data: "John Doe"
+                  created_at: "2024-01-15T10:30:00Z"
+                  updated_at: "2024-01-15T14:45:00Z"
+                  version: 2
+                created: false
+        '201':
+          description: Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetResponse'
+              example:
+                key: "user:123"
+                value:
+                  data: "John Doe"
+                  created_at: "2024-01-15T10:30:00Z"
+                  updated_at: "2024-01-15T10:30:00Z"
+                  version: 1
+                created: true
+        '400':
+          description: Invalid key or request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Create or update a key-value pair
+      description: Same as PUT - stores a value with the specified key
+      operationId: setKeyPost
+      tags:
+        - Key-Value Operations
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: The key to set
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRequest'
+      responses:
+        '200':
+          description: Key updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetResponse'
+        '201':
+          description: Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetResponse'
+        '400':
+          description: Invalid key or request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete a key-value pair
+      description: Remove a key and its associated value from the store
+      operationId: deleteKey
+      tags:
+        - Key-Value Operations
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: The key to delete
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          example: "user:123"
+      responses:
+        '200':
+          description: Key deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+              example:
+                key: "user:123"
+                value:
+                  data: "John Doe"
+                  created_at: "2024-01-15T10:30:00Z"
+                  updated_at: "2024-01-15T14:45:00Z"
+                  version: 2
+                deleted: true
+        '400':
+          description: Invalid key format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Check if the service is healthy and running
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  service:
+                    type: string
+                required:
+                  - status
+                  - service
+              example:
+                status: "healthy"
+                service: "key-value-store"
+
+components:
+  schemas:
+    Value:
+      type: object
+      description: Value metadata and content
+      properties:
+        data:
+          type: string
+          description: The actual value content
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the value was first created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the value was last updated
+        version:
+          type: integer
+          format: int64
+          description: Version number for optimistic concurrency control
+      required:
+        - data
+        - created_at
+        - updated_at
+        - version
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Optional error code for programmatic handling
+      required:
+        - message
+
+    GetResponse:
+      type: object
+      properties:
+        key:
+          type: string
+          description: The requested key
+        value:
+          $ref: '#/components/schemas/Value'
+      required:
+        - key
+        - value
+
+    ListResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            type: string
+          description: Array of all keys in the store
+      required:
+        - keys
+
+    SetRequest:
+      type: object
+      properties:
+        value:
+          type: string
+          description: The value to store
+          minLength: 1
+      required:
+        - value
+
+    SetResponse:
+      type: object
+      properties:
+        key:
+          type: string
+          description: The key that was set
+        value:
+          $ref: '#/components/schemas/Value'
+        created:
+          type: boolean
+          description: True if a new key was created, false if existing key was updated
+      required:
+        - key
+        - value
+        - created
+
+    DeleteResponse:
+      type: object
+      properties:
+        key:
+          type: string
+          description: The key that was deleted
+        value:
+          $ref: '#/components/schemas/Value'
+        deleted:
+          type: boolean
+          description: Always true for successful deletions
+      required:
+        - key
+        - value
+        - deleted
+
+tags:
+  - name: Key-Value Operations
+    description: Core CRUD operations for key-value pairs
+  - name: System
+    description: System health and status endpoints

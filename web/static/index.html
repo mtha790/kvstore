@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key-Value Store</title>
+    <style>
+        /* Basic responsive styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #4a90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .api-docs-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        
+        .api-docs-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .subtitle {
+            margin-top: 5px;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        main {
+            padding: 30px;
+        }
+        
+        .form-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .form-section h2 {
+            margin-bottom: 20px;
+            color: #495057;
+            font-size: 1.3rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #4a90e2;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #357abd;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background: inherit !important;
+        }
+        
+        .store-section {
+            margin-top: 30px;
+        }
+        
+        .store-section h2 {
+            margin-bottom: 20px;
+            color: #495057;
+            font-size: 1.3rem;
+        }
+        
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        
+        .items-container {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            transition: all 0.2s ease;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .item-key {
+            font-weight: 600;
+            color: #495057;
+            min-width: 150px;
+            margin-right: 15px;
+            word-break: break-word;
+        }
+        
+        .item-value {
+            flex: 1;
+            color: #6c757d;
+            margin-right: 15px;
+            word-break: break-word;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4a90e2;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            main {
+                padding: 20px;
+            }
+            
+            .api-docs-link {
+                position: static;
+                display: block;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .item-key {
+                min-width: auto;
+                margin-right: 0;
+            }
+            
+            .item-value {
+                margin-right: 0;
+            }
+            
+            .item-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/api/docs" target="_blank" class="api-docs-link">API Documentation</a>
+            <h1>Key-Value Store</h1>
+            <p class="subtitle">Manage your data with ease</p>
+        </header>
+        
+        <main>
+            <!-- Add/Update Form -->
+            <section class="form-section">
+                <h2 id="form-title">Add New Item</h2>
+                <form id="kv-form">
+                    <div class="form-group">
+                        <label for="key-input">Key</label>
+                        <input type="text" id="key-input" name="key" placeholder="Enter key" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="value-input">Value</label>
+                        <textarea id="value-input" name="value" placeholder="Enter value" required></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary" id="submit-btn">Add Item</button>
+                        <button type="button" class="btn-secondary" id="clear-btn">Clear</button>
+                        <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display: none;">Cancel Edit</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Store Display -->
+            <section class="store-section">
+                <h2>Stored Items</h2>
+                
+                <!-- Statistics -->
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-value" id="total-items">0</span>
+                        <span>Total Items</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="total-size">0 B</span>
+                        <span>Total Size</span>
+                    </div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <div class="form-group">
+                        <label for="search-input">Search</label>
+                        <input type="text" id="search-input" placeholder="Search by key or value...">
+                    </div>
+                </div>
+                
+                <!-- Items Container -->
+                <div class="items-container" id="items-container">
+                    <!-- Empty state -->
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <p>No items stored yet</p>
+                        <p><small>Add your first key-value pair above</small></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        // Global state
+        let allItems = [];
+        let filteredItems = [];
+        let isEditing = false;
+        let editingKey = null;
+
+        // DOM elements
+        const form = document.getElementById('kv-form');
+        const keyInput = document.getElementById('key-input');
+        const valueInput = document.getElementById('value-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const formTitle = document.getElementById('form-title');
+        const searchInput = document.getElementById('search-input');
+        const itemsContainer = document.getElementById('items-container');
+        const emptyState = document.getElementById('empty-state');
+        const totalItemsEl = document.getElementById('total-items');
+        const totalSizeEl = document.getElementById('total-size');
+
+        // API functions
+        async function apiRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+                }
+
+                // Handle empty responses
+                if (response.status === 204 || response.headers.get('content-length') === '0') {
+                    return null;
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return await response.json();
+                }
+                
+                return await response.text();
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+
+        async function getAllKeys() {
+            return await apiRequest('/api/kv/');
+        }
+
+        async function getValue(key) {
+            return await apiRequest(`/api/kv/${encodeURIComponent(key)}`);
+        }
+
+        async function setValue(key, value) {
+            return await apiRequest(`/api/kv/${encodeURIComponent(key)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ value: value })
+            });
+        }
+
+        async function deleteKey(key) {
+            return await apiRequest(`/api/kv/${encodeURIComponent(key)}`, {
+                method: 'DELETE'
+            });
+        }
+
+        // Utility functions
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showLoading(element, text = 'Loading...') {
+            const originalContent = element.innerHTML;
+            element.innerHTML = `<span style="opacity: 0.6;">${text}</span>`;
+            element.disabled = true;
+            return () => {
+                element.innerHTML = originalContent;
+                element.disabled = false;
+            };
+        }
+
+        function showError(message, duration = 5000) {
+            // Create error notification
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #dc3545;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                max-width: 400px;
+                font-size: 14px;
+                line-height: 1.4;
+            `;
+            errorDiv.textContent = message;
+            
+            document.body.appendChild(errorDiv);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.style.transition = 'opacity 0.3s';
+                    errorDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (errorDiv.parentNode) {
+                            errorDiv.parentNode.removeChild(errorDiv);
+                        }
+                    }, 300);
+                }
+            }, duration);
+        }
+
+        function showSuccess(message, duration = 3000) {
+            // Create success notification
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                max-width: 400px;
+                font-size: 14px;
+                line-height: 1.4;
+            `;
+            successDiv.textContent = message;
+            
+            document.body.appendChild(successDiv);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.style.transition = 'opacity 0.3s';
+                    successDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (successDiv.parentNode) {
+                            successDiv.parentNode.removeChild(successDiv);
+                        }
+                    }, 300);
+                }
+            }, duration);
+        }
+
+        async function confirmAction(message) {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2000;
+                `;
+                
+                const dialog = document.createElement('div');
+                dialog.style.cssText = `
+                    background: white;
+                    padding: 30px;
+                    border-radius: 8px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                    max-width: 400px;
+                    width: 90%;
+                `;
+                
+                dialog.innerHTML = `
+                    <h3 style="margin: 0 0 15px 0; color: #495057;">Confirm Action</h3>
+                    <p style="margin: 0 0 25px 0; color: #6c757d; line-height: 1.5;">${message}</p>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn-secondary cancel-btn">Cancel</button>
+                        <button class="btn-danger confirm-btn">Confirm</button>
+                    </div>
+                `;
+                
+                modal.appendChild(dialog);
+                document.body.appendChild(modal);
+                
+                const cancelBtn = dialog.querySelector('.cancel-btn');
+                const confirmBtn = dialog.querySelector('.confirm-btn');
+                
+                cancelBtn.onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                };
+                
+                confirmBtn.onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(true);
+                };
+                
+                // Close on background click
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                        resolve(false);
+                    }
+                };
+                
+                // Focus confirm button
+                setTimeout(() => confirmBtn.focus(), 100);
+            });
+        }
+
+        // Data management functions
+        async function loadAllItems(showLoadingState = false) {
+            if (showLoadingState) {
+                itemsContainer.innerHTML = `
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Loading your data...</p>
+                    </div>
+                `;
+            }
+
+            try {
+                const keys = await getAllKeys();
+                allItems = [];
+                
+                if (keys && keys.length > 0) {
+                    // Load all values in parallel
+                    const promises = keys.map(async (key) => {
+                        try {
+                            const response = await getValue(key);
+                            // Extract the actual data from the response
+                            const value = response && response.value && response.value.data ? response.value.data : response;
+                            return { key, value };
+                        } catch (error) {
+                            console.error(`Failed to load value for key: ${key}`, error);
+                            return { key, value: '[Error loading value]' };
+                        }
+                    });
+                    
+                    allItems = await Promise.all(promises);
+                }
+                
+                applyFilter();
+                updateStats();
+            } catch (error) {
+                console.error('Failed to load items:', error);
+                showError('Failed to load items: ' + error.message);
+                
+                // Show empty state on error
+                itemsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Failed to load data</p>
+                        <p><small>Please check your connection and try refreshing</small></p>
+                    </div>
+                `;
+            }
+        }
+
+        function applyFilter() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (!searchTerm) {
+                filteredItems = [...allItems];
+            } else {
+                filteredItems = allItems.filter(item => 
+                    item.key.toLowerCase().includes(searchTerm) ||
+                    item.value.toString().toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderItems();
+        }
+
+        function updateStats() {
+            const totalItems = allItems.length;
+            const totalSize = allItems.reduce((sum, item) => {
+                return sum + item.key.length + item.value.toString().length;
+            }, 0);
+            
+            totalItemsEl.textContent = totalItems;
+            totalSizeEl.textContent = formatBytes(totalSize);
+        }
+
+        function renderItems() {
+            if (filteredItems.length === 0) {
+                itemsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <p>${allItems.length === 0 ? 'No items stored yet' : 'No items match your search'}</p>
+                        <p><small>${allItems.length === 0 ? 'Add your first key-value pair above' : 'Try a different search term'}</small></p>
+                    </div>
+                `;
+                return;
+            }
+
+            itemsContainer.innerHTML = filteredItems.map(item => `
+                <div class="item" data-key="${escapeHtml(item.key)}">
+                    <div class="item-key">${escapeHtml(item.key)}</div>
+                    <div class="item-value">${escapeHtml(item.value)}</div>
+                    <div class="item-actions">
+                        <button class="btn-secondary btn-small edit-btn" data-key="${escapeHtml(item.key)}">Edit</button>
+                        <button class="btn-danger btn-small delete-btn" data-key="${escapeHtml(item.key)}">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Attach event listeners to action buttons
+            itemsContainer.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const key = e.target.getAttribute('data-key');
+                    editItem(key);
+                });
+            });
+
+            itemsContainer.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const key = e.target.getAttribute('data-key');
+                    await deleteItem(key);
+                });
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Form management functions
+        function resetForm() {
+            form.reset();
+            isEditing = false;
+            editingKey = null;
+            formTitle.textContent = 'Add New Item';
+            submitBtn.textContent = 'Add Item';
+            cancelEditBtn.style.display = 'none';
+            keyInput.disabled = false;
+        }
+
+        function editItem(key) {
+            const item = allItems.find(item => item.key === key);
+            if (!item) return;
+
+            isEditing = true;
+            editingKey = key;
+            formTitle.textContent = 'Edit Item';
+            submitBtn.textContent = 'Update Item';
+            cancelEditBtn.style.display = 'inline-block';
+            
+            keyInput.value = item.key;
+            keyInput.disabled = true;
+            valueInput.value = item.value;
+            valueInput.focus();
+            
+            // Scroll to form
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function deleteItem(key) {
+            const confirmed = await confirmAction(`Are you sure you want to delete the key "${key}"? This action cannot be undone.`);
+            if (!confirmed) return;
+
+            try {
+                await deleteKey(key);
+                showSuccess(`Key "${key}" deleted successfully`);
+                await loadAllItems();
+            } catch (error) {
+                console.error('Failed to delete item:', error);
+                showError('Failed to delete item: ' + error.message);
+            }
+        }
+
+        // Event listeners
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = keyInput.value.trim();
+            const value = valueInput.value;
+            
+            if (!key || !value) {
+                showError('Both key and value are required');
+                return;
+            }
+
+            const stopLoading = showLoading(submitBtn, isEditing ? 'Updating...' : 'Adding...');
+
+            try {
+                await setValue(key, value);
+                showSuccess(isEditing ? `Key "${key}" updated successfully` : `Key "${key}" added successfully`);
+                resetForm();
+                await loadAllItems();
+            } catch (error) {
+                console.error('Failed to save item:', error);
+                showError('Failed to save item: ' + error.message);
+            } finally {
+                stopLoading();
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            form.reset();
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            resetForm();
+        });
+
+        searchInput.addEventListener('input', () => {
+            applyFilter();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search or cancel edit
+            if (e.key === 'Escape') {
+                if (searchInput.value) {
+                    searchInput.value = '';
+                    applyFilter();
+                } else if (isEditing) {
+                    resetForm();
+                }
+            }
+            
+            // Ctrl/Cmd + Enter to submit form when focused on inputs
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                if (document.activeElement === keyInput || document.activeElement === valueInput) {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        // Initialize the application
+        async function init() {
+            await loadAllItems(true); // Show loading state on initial load
+            
+            // Add keyboard shortcut hint
+            const searchLabel = document.querySelector('label[for="search-input"]');
+            if (searchLabel) {
+                searchLabel.innerHTML = 'Search <small style="opacity: 0.7;">(Ctrl+K)</small>';
+            }
+        }
+
+        // Start the application when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
